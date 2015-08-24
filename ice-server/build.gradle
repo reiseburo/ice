@@ -1,4 +1,27 @@
+apply plugin: 'application'
 apply plugin: 'codenarc'
 
 group rootProject.group
 version rootProject.version
+mainClassName = 'com.github.reiseburo.iceserver.ICEMain'
+
+
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:[2.4.4,2.5)'
+    compile 'io.netty:netty-all:[5.0,6.0)'
+    compile 'ch.qos.logback:logback-classic:[1.1.3,1.2)'
+    compile 'asia.stampy:stampy-NETTY-client-server-RI:1.0-RELEASE'
+    compile 'asia.stampy:stampy-client-server:1.0-RELEASE'
+
+    compile 'org.robotninjas:protorpc:0.1.0-alpha2-SNAPSHOT'
+
+    codenarc "org.codenarc:CodeNarc:0.24"
+}
+
+codenarc {
+    configFile file("${rootProject.projectDir}/gradle/codenarc.rules")
+}
