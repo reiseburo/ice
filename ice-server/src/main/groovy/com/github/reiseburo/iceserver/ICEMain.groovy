@@ -1,5 +1,9 @@
 package com.github.reiseburo.iceserver
 
+import asia.stampy.common.gateway.HostPort
+import asia.stampy.common.gateway.StampyMessageListener
+import asia.stampy.common.message.StampyMessage
+import asia.stampy.common.message.StompMessageType
 import asia.stampy.server.netty.ServerNettyChannelHandler
 import asia.stampy.server.netty.ServerNettyMessageGateway;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway
@@ -119,6 +123,24 @@ class ICEMain {
     }
 
     static void main(String[] arguments) {
+        AbstractStampyMessageGateway gateway = initialize()
+        gateway.addMessageListener([
+                messageReceived: { StampyMessage<?> message, HostPort hostPort ->
+                    println "messageReceived: ${message}"
+                },
+                isForMessage: { StampyMessage<?> message ->
+                    println "isForMessage: ${message}"
+                    return true
+                },
+                getMessageTypes: {
+                    return StompMessageType.values()
+                }
+                ] as StampyMessageListener)
+        gateway.connect()
+        print "${gateway} started"
+    }
+
+    static void origMain(String[] arguments) {
         EventLoopGroup bossGroup = new NioEventLoopGroup()
         EventLoopGroup workerGroup = new NioEventLoopGroup()
 
