@@ -20,7 +20,7 @@ import asia.stampy.server.netty.login.NettyLoginMessageListener
 import asia.stampy.server.netty.receipt.NettyReceiptListener
 import asia.stampy.server.netty.subscription.NettyAcknowledgementListenerAndInterceptor
 import asia.stampy.server.netty.transaction.NettyTransactionListener
-import com.google.common.eventbus.Subscribe
+import com.github.reiseburo.iceserver.handlers.LoginHandler
 import io.netty.channel.ChannelHandlerContext
 import org.jboss.netty.channel.ChannelStateEvent
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler
@@ -69,7 +69,7 @@ class ICEMain {
         channelHandler.setGateway(gateway);
         channelHandler.setHeartbeatContainer(heartbeatContainer);
 
-        gateway.addMessageListener(new IDontNeedSecurity());
+        gateway.addMessageListener(new EmptySecurityListener())
 
         gateway.addMessageListener(new ServerMessageValidationListener());
 
@@ -77,7 +77,7 @@ class ICEMain {
 
         NettyLoginMessageListener login = new NettyLoginMessageListener();
         login.setGateway(gateway);
-        login.setLoginHandler(new SystemLoginHandler());
+        login.setLoginHandler(new LoginHandler())
         gateway.addMessageListener(login);
 
         NettyConnectStateListener connect = new NettyConnectStateListener();
@@ -92,15 +92,6 @@ class ICEMain {
         NettyTransactionListener transaction = new NettyTransactionListener();
         transaction.setGateway(gateway);
         gateway.addMessageListener(transaction);
-
-        SystemAcknowledgementHandler sys = new SystemAcknowledgementHandler();
-
-        NettyAcknowledgementListenerAndInterceptor acknowledgement = new NettyAcknowledgementListenerAndInterceptor();
-        acknowledgement.setHandler(sys);
-        acknowledgement.setGateway(gateway);
-        acknowledgement.setAckTimeoutMillis(200);
-        gateway.addMessageListener(acknowledgement);
-        gateway.addOutgoingMessageInterceptor(acknowledgement);
 
         NettyReceiptListener receipt = new NettyReceiptListener();
         receipt.setGateway(gateway);
@@ -119,10 +110,6 @@ class ICEMain {
         AbstractStampyMessageGateway gateway = initialize()
 
         ConcurrentHashMap<String, List<Subscripter>> topics = new ConcurrentHashMap<>()
-
-        //MessageMessage message = new MessageMessage("destination", msgId, id);
-        //message.getHeader().setAck(msgId);
-        //gateway.sendMessage(message, hostPort);
 
         gateway.addMessageListener([
                 messageReceived: { StampyMessage<?> message, HostPort hostPort ->
@@ -155,10 +142,13 @@ class ICEMain {
                                 (topics.get(destination) as List<Subscripter>).add(s)
                             }
                         break;
+
+                        case StompMessageType.UNSUBSCRIBE:
+                        break;
                     }
                 },
                 isForMessage: { StampyMessage<?> message ->
-                    println "isForMessage: ${message}"
+                    /* Any message that gets to us is ours */
                     return true
                 },
                 getMessageTypes: {
