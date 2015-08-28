@@ -1,9 +1,11 @@
 package com.github.reiseburo.iceserver
 
+import asia.stampy.client.message.subscribe.SubscribeMessage
 import asia.stampy.common.gateway.HostPort
 import asia.stampy.common.gateway.StampyMessageListener
 import asia.stampy.common.message.StampyMessage
 import asia.stampy.common.message.StompMessageType
+import asia.stampy.server.message.message.MessageMessage
 import asia.stampy.server.netty.ServerNettyChannelHandler
 import asia.stampy.server.netty.ServerNettyMessageGateway;
 import asia.stampy.common.gateway.AbstractStampyMessageGateway
@@ -18,41 +20,32 @@ import asia.stampy.server.netty.login.NettyLoginMessageListener
 import asia.stampy.server.netty.receipt.NettyReceiptListener
 import asia.stampy.server.netty.subscription.NettyAcknowledgementListenerAndInterceptor
 import asia.stampy.server.netty.transaction.NettyTransactionListener
-import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.ChannelFuture
+import com.google.common.eventbus.Subscribe
 import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelHandlerAdapter
-import io.netty.channel.ChannelInitializer
-import io.netty.channel.ChannelOption
-import io.netty.channel.EventLoopGroup
-import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.SocketChannel
-import io.netty.channel.socket.nio.NioServerSocketChannel
 import org.jboss.netty.channel.ChannelStateEvent
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class DiscardHandler extends ChannelHandlerAdapter {
-    private static final Logger LOG = LoggerFactory.getLogger(this)
+import java.util.concurrent.ConcurrentHashMap
 
-    @Override
-    void channelRead(ChannelHandlerContext context, Object message) {
-        context.write(message)
-        context.flush()
-    }
 
-    @Override
-    void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
-        LOG.error('Exception caught!', cause)
-        context.close()
+
+class Subscripter {
+    HostPort hostPort
+    String id
+
+    Subscripter(String id, HostPort hostPort) {
+        this.hostPort = hostPort
+        this.id = id
     }
 }
-
 /**
  * Main entry point for the ICE server
  */
 class ICEMain {
+    static Logger logger = LoggerFactory.getLogger(this)
+
     /**
      * Initialize.
      *
@@ -124,9 +117,45 @@ class ICEMain {
 
     static void main(String[] arguments) {
         AbstractStampyMessageGateway gateway = initialize()
+
+        ConcurrentHashMap<String, List<Subscripter>> topics = new ConcurrentHashMap<>()
+
+        //MessageMessage message = new MessageMessage("destination", msgId, id);
+        //message.getHeader().setAck(msgId);
+        //gateway.sendMessage(message, hostPort);
+
         gateway.addMessageListener([
                 messageReceived: { StampyMessage<?> message, HostPort hostPort ->
-                    println "messageReceived: ${message}"
+                    println "messageReceived: ${message} ${message.messageType}"
+
+                    switch (message.messageType) {
+                        case StompMessageType.SEND:
+                            String destination = message.header.getHeaderValue('destination')
+
+                            if (topics.containsKey(destination)) {
+                                topics.get(destination).each { Subscripter s ->
+                                    println "Dispatching messages to subscripter ${s.id}"
+                                    String messageId = (new Random()).nextInt().toString()
+                                    MessageMessage m = new MessageMessage(destination, messageId, s.id)
+                                    m.header.setAck(messageId)
+                                    gateway.sendMessage(m, s.hostPort)
+                                }
+                            }
+                        break;
+
+                        case StompMessageType.SUBSCRIBE:
+                            SubscribeMessage subscription = message as SubscribeMessage
+                            String destination = subscription.header.destination
+                            Subscripter s = new Subscripter(subscription.header.id, hostPort)
+                            println "Receiving a subscription to ${destination} for client ${subscription.header.id}"
+                            if (!topics.containsKey(destination)) {
+                                topics.put(destination, [s])
+                            }
+                            else {
+                                (topics.get(destination) as List<Subscripter>).add(s)
+                            }
+                        break;
+                    }
                 },
                 isForMessage: { StampyMessage<?> message ->
                     println "isForMessage: ${message}"
@@ -138,36 +167,6 @@ class ICEMain {
                 ] as StampyMessageListener)
         gateway.connect()
         print "${gateway} started"
-    }
-
-    static void origMain(String[] arguments) {
-        EventLoopGroup bossGroup = new NioEventLoopGroup()
-        EventLoopGroup workerGroup = new NioEventLoopGroup()
-
-        try {
-            ServerBootstrap b = new ServerBootstrap()
-            b.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new DiscardHandler())
-                }
-            })
-                    .option(ChannelOption.SO_BACKLOG, 128)
-                    .childOption(ChannelOption.SO_KEEPALIVE, true)
-
-            // Bind and start to accept incoming connections.
-            ChannelFuture f = b.bind(8080).sync()
-
-            // Wait until the server socket is closed.
-            // In this example, this does not happen, but you can do that to gracefully
-            // shut down your server.
-            f.channel().closeFuture().sync()
-        } finally {
-            workerGroup.shutdownGracefully()
-            bossGroup.shutdownGracefully()
-        }
     }
 }
 
