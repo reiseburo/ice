@@ -17,8 +17,6 @@ dependencies {
     compile 'asia.stampy:stampy-NETTY-client-server-RI:1.0-RELEASE'
     compile 'asia.stampy:stampy-client-server:1.0-RELEASE'
 
-    compile 'org.robotninjas:protorpc:0.1.0-alpha2-SNAPSHOT'
-
     codenarc "org.codenarc:CodeNarc:0.24"
 }
 
