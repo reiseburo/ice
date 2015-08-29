@@ -21,6 +21,7 @@ import asia.stampy.server.netty.receipt.NettyReceiptListener
 import asia.stampy.server.netty.subscription.NettyAcknowledgementListenerAndInterceptor
 import asia.stampy.server.netty.transaction.NettyTransactionListener
 import com.github.reiseburo.iceserver.handlers.LoginHandler
+import com.github.reiseburo.iceserver.listeners.SubscriptionListener
 import io.netty.channel.ChannelHandlerContext
 import org.jboss.netty.channel.ChannelStateEvent
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler
@@ -29,29 +30,13 @@ import org.slf4j.LoggerFactory
 
 import java.util.concurrent.ConcurrentHashMap
 
-
-
-class Subscripter {
-    HostPort hostPort
-    String id
-
-    Subscripter(String id, HostPort hostPort) {
-        this.hostPort = hostPort
-        this.id = id
-    }
-}
 /**
  * Main entry point for the ICE server
  */
 class ICEMain {
     static Logger logger = LoggerFactory.getLogger(this)
 
-    /**
-     * Initialize.
-     *
-     * @return the server mina message gateway
-     */
-    public static AbstractStampyMessageGateway initialize() {
+    static AbstractStampyMessageGateway initialize() {
         StampyHeartbeatContainer heartbeatContainer = new HeartbeatContainer();
 
         ServerNettyMessageGateway gateway = new ServerNettyMessageGateway();
@@ -109,7 +94,8 @@ class ICEMain {
     static void main(String[] arguments) {
         AbstractStampyMessageGateway gateway = initialize()
 
-        ConcurrentHashMap<String, List<Subscripter>> topics = new ConcurrentHashMap<>()
+        Subscriptions subscriptions = new Subscriptions()
+        gateway.addMessageListener(new SubscriptionListener(subscriptions))
 
         gateway.addMessageListener([
                 messageReceived: { StampyMessage<?> message, HostPort hostPort ->
@@ -120,7 +106,7 @@ class ICEMain {
                             String destination = message.header.getHeaderValue('destination')
 
                             if (topics.containsKey(destination)) {
-                                topics.get(destination).each { Subscripter s ->
+                                topics.get(destination).each { Subscription s ->
                                     println "Dispatching messages to subscripter ${s.id}"
                                     String messageId = (new Random()).nextInt().toString()
                                     MessageMessage m = new MessageMessage(destination, messageId, s.id)
@@ -128,22 +114,6 @@ class ICEMain {
                                     gateway.sendMessage(m, s.hostPort)
                                 }
                             }
-                        break;
-
-                        case StompMessageType.SUBSCRIBE:
-                            SubscribeMessage subscription = message as SubscribeMessage
-                            String destination = subscription.header.destination
-                            Subscripter s = new Subscripter(subscription.header.id, hostPort)
-                            println "Receiving a subscription to ${destination} for client ${subscription.header.id}"
-                            if (!topics.containsKey(destination)) {
-                                topics.put(destination, [s])
-                            }
-                            else {
-                                (topics.get(destination) as List<Subscripter>).add(s)
-                            }
-                        break;
-
-                        case StompMessageType.UNSUBSCRIBE:
                         break;
                     }
                 },
@@ -156,7 +126,6 @@ class ICEMain {
                 }
                 ] as StampyMessageListener)
         gateway.connect()
-        print "${gateway} started"
     }
 }
 
