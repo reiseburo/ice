@@ -1,5 +1,7 @@
 = ICE
 
+image:https://travis-ci.org/reiseburo/ice.svg?branch=master["Build Status", link="https://travis-ci.org/reiseburo/ice"]
+
 link:https://en.wikipedia.org/wiki/ICE_3[InterCity Express]
 
 
