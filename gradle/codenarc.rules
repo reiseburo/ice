@@ -134,7 +134,10 @@ ruleset {
     ForStatementBraces
     GStringAsMapKey
     GStringExpressionWithinString
+    /*
+        Not particularly useful
     GetterMethodCouldBeProperty
+    */
     GrailsDomainHasEquals
     GrailsDomainHasToString
     GrailsDomainReservedSqlKeywordName
@@ -164,7 +167,7 @@ ruleset {
     InconsistentPropertyLocking
     InconsistentPropertySynchronization
     InsecureRandom
-    //Instanceof
+    Instanceof
     IntegerGetInteger
     InterfaceName
     InterfaceNameSameAsSuperInterface
@@ -184,14 +187,17 @@ ruleset {
     JUnitUnnecessarySetUp
     JUnitUnnecessaryTearDown
     JUnitUnnecessaryThrowsException
-    //JavaIoPackageAccess
+    JavaIoPackageAccess
     JdbcConnectionReference
     JdbcResultSetReference
     JdbcStatementReference
     LineLength
     LocaleSetDefault
     LoggerForDifferentClass
+    /*
+        You're not the boss of me
     LoggerWithWrongModifiers
+    */
     LoggingSwallowsStacktrace
     LongLiteralWithLowerCaseL
     MethodCount
@@ -247,7 +253,10 @@ ruleset {
     SpaceAfterSwitch
     SpaceAfterWhile
     SpaceAroundClosureArrow
+    /*
+        I prefer a little extra space
     SpaceAroundMapEntryColon
+    */
     SpaceAroundOperator
     SpaceBeforeClosingBrace
     SpaceBeforeOpeningBrace
@@ -268,7 +277,10 @@ ruleset {
     SynchronizedOnThis
     SynchronizedReadObjectMethod
     SystemErrPrint
+    /*
+        This warning doesn't apply to us
     SystemExit
+    */
     SystemOutPrint
     SystemRunFinalizersOnExit
     TernaryCouldBeElvis
@@ -320,7 +332,10 @@ ruleset {
     UnnecessaryPackageReference
     UnnecessaryParenthesesForMethodCallWithClosure
     UnnecessaryPublicModifier
-    //UnnecessaryReturnKeyword
+    /*
+        I quite like explicit return estatements
+    UnnecessaryReturnKeyword
+    */
     UnnecessarySafeNavigationOperator
     UnnecessarySelfAssignment
     UnnecessarySemicolon
@@ -333,7 +348,10 @@ ruleset {
     UnsafeImplementationAsMap
     UnusedArray
     UnusedImport
+    /*
+        Some interfaces require no use for the method parameter
     UnusedMethodParameter
+    */
     UnusedObject
     UnusedPrivateField
     UnusedPrivateMethod

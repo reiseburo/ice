@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
  */
 @TypeChecked
 class SubscriptionListener implements StampyMessageListener {
-    static final StompMessageType[] acceptedTypes = ([StompMessageType.SUBSCRIBE,
+    static final StompMessageType[] ACCEPTED_TYPES = ([StompMessageType.SUBSCRIBE,
                                                       StompMessageType.UNSUBSCRIBE] as StompMessageType[])
     protected Subscriptions subscriptions
     protected Logger logger = LoggerFactory.getLogger(this.class)
@@ -38,11 +38,10 @@ class SubscriptionListener implements StampyMessageListener {
                                                                               hostPort)
                 subscriptions.add(subscription)
 
-
-                break;
+                break
 
             case StompMessageType.UNSUBSCRIBE:
-                break;
+                break
         }
     }
 
@@ -50,7 +49,7 @@ class SubscriptionListener implements StampyMessageListener {
      * @return Accepting types subscribe and unsubscribe
      */
     StompMessageType[] getMessageTypes() {
-        return acceptedTypes
+        return ACCEPTED_TYPES
     }
 
     /**

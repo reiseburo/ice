@@ -44,9 +44,9 @@ class Subscriptions {
      * @param subscription
      */
     void add(Subscription subscription) {
-        final String destination = subscription.destination
-        logger.info('Adding subscription to \"{}\" for `{}`', destination, subscription)
-        byDestination.put(destination, subscription)
+        String subDestination = subscription.destination
+        logger.info('Adding subscription to \"{}\" for `{}`', subDestination, subscription)
+        byDestination.put(subDestination, subscription)
     }
 
     /**

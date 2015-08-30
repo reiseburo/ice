@@ -10,7 +10,7 @@ import asia.stampy.common.message.StompMessageType
  */
 class EmptySecurityListener implements SecurityMessageListener {
     StompMessageType[] getMessageTypes() {
-        return null
+        return []
     }
 
     boolean isForMessage(StampyMessage<?> message) {
@@ -18,5 +18,6 @@ class EmptySecurityListener implements SecurityMessageListener {
     }
 
     void messageReceived(StampyMessage<?> message, HostPort hostPort) {
+        return
     }
 }

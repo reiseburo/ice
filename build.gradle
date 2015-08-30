@@ -6,6 +6,7 @@ version '1.0-SNAPSHOT'
 defaultTasks 'check', 'assemble'
 
 subprojects {
+    apply plugin: 'codenarc'
     apply plugin: 'java'
     apply plugin: 'groovy'
 
@@ -16,6 +17,11 @@ subprojects {
     dependencies {
         testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
         testCompile 'cglib:cglib-nodep:3.1'
+    }
+
+    codenarc {
+        sourceSets = [sourceSets.main]
+        configFile = file("${rootProject.projectDir}/gradle/codenarc.rules")
     }
 }
 
