@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @TypeChecked
 class Subscriptions {
-    protected Map<String, Subscription> byDestination
+    protected Map<String, List<Subscription>> byDestination
     protected Logger logger = LoggerFactory.getLogger(this.class)
 
     /**
@@ -20,7 +20,7 @@ class Subscriptions {
      *  subscriptions internally
      */
     Subscriptions() {
-        this(new ConcurrentHashMap<String, Subscription>())
+        this(new ConcurrentHashMap<String, List<Subscription>>())
     }
 
     /**
@@ -29,7 +29,7 @@ class Subscriptions {
      *
      * @param byDestinationSubscriptions
      */
-    Subscriptions(Map<String, Subscription> byDestinationSubscriptions) {
+    Subscriptions(Map<String, List<Subscription>> byDestinationSubscriptions) {
         this.byDestination = byDestinationSubscriptions
     }
 
@@ -46,7 +46,10 @@ class Subscriptions {
     void add(Subscription subscription) {
         String subDestination = subscription.destination
         logger.info('Adding subscription to \"{}\" for `{}`', subDestination, subscription)
-        byDestination.put(subDestination, subscription)
+        if (!byDestination.containsKey(subDestination)) {
+            byDestination.put(subDestination, [])
+        }
+        byDestination.get(subDestination).add(subscription)
     }
 
     /**
@@ -58,5 +61,13 @@ class Subscriptions {
     Logger setLogger(Logger newLogger) {
         logger = newLogger
         return logger
+    }
+
+    boolean containsDestination(String destination) {
+        return this.byDestination?.containsKey(destination) as boolean
+    }
+
+    List<Subscription> subscriptionsForDestination(String destination) {
+        return this.byDestination.get(destination) ?: []
     }
 }

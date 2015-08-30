@@ -101,13 +101,11 @@ class ICEMain {
                         case StompMessageType.SEND:
                             String destination = message.header.getHeaderValue('destination')
 
-                            if (topics.containsKey(destination)) {
-                                topics.get(destination).each { Subscription s ->
-                                    String messageId = (new SecureRandom()).nextInt()
-                                    MessageMessage m = new MessageMessage(destination, messageId, s.id)
-                                    m.header.setAck(messageId)
-                                    gateway.sendMessage(m, s.hostPort)
-                                }
+                            subscriptions.subscriptionsForDestination(destination).each { Subscription s ->
+                                String messageId = (new SecureRandom()).nextInt()
+                                MessageMessage m = new MessageMessage(destination, messageId, s.clientId)
+                                m.header.setAck(messageId)
+                                gateway.sendMessage(m, s.hostPort)
                             }
                         break
                     }
