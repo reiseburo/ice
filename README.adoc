@@ -4,3 +4,21 @@ link:https://en.wikipedia.org/wiki/ICE_3[InterCity Express]
 
 
 WARNING: This repository is an experiment and at least right now should not be taken very seriously
+
+
+== Building/Testing
+
+This project requires that you have at least JDK7 or later installed. It uses
+link:http://gradle.org[Gradle] as its build tool which *should* resolve and
+download all the necessary dependencies.
+
+=== Running tests
+
+`./gradlew check`
+
+=== Building a release
+
+`./gradlew assemble`
+
+If `ice-server/build/distributions` you will find a `.tar` and `.zip` file which
+should act as self-contained distributions with a start script for the server
